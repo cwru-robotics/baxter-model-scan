@@ -1,0 +1,7 @@
+# Settings for model acquistion
+# Robot specific settings
+robot: baxter
+scanner: kinect2
+
+# Acquisition settings
+increment_degrees: 10.0
