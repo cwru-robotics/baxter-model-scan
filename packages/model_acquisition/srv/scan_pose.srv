@@ -1,0 +1,4 @@
+# A ROS service to request that a robot may assume a scanning pose
+bool request
+---
+bool done

@@ -1,0 +1,9 @@
+<launch>
+
+  <node pkg="baxter_traj_streamer" type="traj_interpolator_as" name="traj_interpolator_as" />
+
+  <node pkg="model_acquisition" type="model_acquisition" name="model_acquisition" output="screen" cwd="node">
+    <rosparam command="load" file="$(find model_acquisition)/config/settings.yaml" />
+  </node>
+
+</launch>

@@ -1,0 +1,5 @@
+# A ROS service to request that a robot may acquire a model
+
+string model_name
+---
+bool done
