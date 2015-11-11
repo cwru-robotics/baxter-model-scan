@@ -15,8 +15,7 @@ then
 
 	# set up cwru things
 	#you might want to change this to a fork?
-  (cd ~/$WS_NAME/src/cwru && git clone https://github.com/cwru-robotics/cwru_baxter.git)
-
+    (cd ~/$WS_NAME/src/cwru && git clone https://github.com/cwru-robotics/cwru_baxter.git)
 
 	(cd ~/$WS_NAME/src/cwru && git clone https://github.com/cwru-robotics/cwru_msgs.git)
 	(cd ~/$WS_NAME/src/cwru && git clone https://github.com/catkin/catkin_simple.git)
