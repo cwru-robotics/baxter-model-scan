@@ -5,8 +5,8 @@ scanner: kinect2
 
 # Acquisition settings
 increment_degrees: 20.0
-
-scan_topic: /kinect2/sd/points
+n_snapshots: 1
+scan_topic: /kinect/depth/points
 
 # Scan pose
 scan_left_e0: -1.22143
