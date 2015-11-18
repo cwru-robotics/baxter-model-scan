@@ -1,0 +1,4 @@
+# Settings for PCD_WATCHER
+
+# Directory to watch for new PCD files
+directory: /tmp/PCD

@@ -1,0 +1,8 @@
+# goal definition
+string newFilepath
+---
+# result definition
+string processedFilepath
+---
+#feedback definition
+string feedback 
