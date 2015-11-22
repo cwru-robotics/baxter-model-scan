@@ -37,7 +37,7 @@ public:
   Kinect2Interface(ros::NodeHandle &nh);
   virtual ~Kinect2Interface();
 
-  void snapshot(std::string obj_name);
+  void snapshot(std::string obj_name, uint snapshot_num, double snapshot_angle);
 
 private:
   ros::NodeHandle nh_;

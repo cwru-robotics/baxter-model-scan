@@ -50,6 +50,8 @@ void BaxterInterface::doneCb(const actionlib::SimpleClientGoalState& state,
 
 Vectorq7x1 BaxterInterface::getLeftArmPose()
 {
+  ros::spinOnce();
+
   Vectorq7x1 pose;
 
   pose(2, 0) = leftJointAngles[0];
@@ -92,6 +94,7 @@ bool BaxterInterface::goToPose(Vectorq7x1 pose, int lr)
   Vectorq7x1 q_vec_left_arm;
 
   std::vector<Eigen::VectorXd> des_path;
+  des_path.clear();
 
   trajectory_msgs::JointTrajectory des_trajectory;
 
@@ -118,7 +121,7 @@ bool BaxterInterface::goToPose(Vectorq7x1 pose, int lr)
   q_in_vecxd = pose;
   des_path.push_back(q_in_vecxd);
 
-  ts.stuff_trajectory(des_path, des_trajectory);
+  ts.stuff_left_trajectory(des_path, des_trajectory);
 
   baxter_traj_streamer::trajGoal goal;
   goal.trajectory = des_trajectory;

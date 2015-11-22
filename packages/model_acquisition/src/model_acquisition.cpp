@@ -14,6 +14,8 @@ std::string g_scanner;
 double g_increment_degrees;
 double g_increment_radians;
 
+int g_n_snapshots;
+
 std::vector<double> g_scan_pose(7);
 Vectorq7x1 g_vec_scan_pose;
 
@@ -23,6 +25,8 @@ Kinect2Interface* kinect;
 bool goToScanPose(model_acquisition::scan_pose::Request &request,
                   model_acquisition::scan_pose::Response &response)
 {
+  ros::spinOnce();
+
   ROS_INFO("Set Scan Pose!");
   baxter->goToPose(g_vec_scan_pose, 1);
 
@@ -32,16 +36,24 @@ bool goToScanPose(model_acquisition::scan_pose::Request &request,
 bool acquireModel(model_acquisition::acquire::Request &request,
                   model_acquisition::acquire::Response &response)
 {
+  ros::spinOnce();
   ROS_INFO("Acquire Model!");
 
   for (double d = -M_PI; d < M_PI; d += g_increment_radians)
   {
     g_vec_scan_pose(6, 0) = d;
+    ros::spinOnce();
+    
     baxter->goToPose(g_vec_scan_pose, 1);
 
     ROS_INFO("snapshot");
     
-    kinect->snapshot(request.model_name);
+    for (int i = 0; i < g_n_snapshots; i++)
+    {
+      
+      kinect->snapshot(request.model_name, i, angles::to_degrees(d));
+    }
+    
     ros::spinOnce();  // This might not be necessary since it's inside kinect2Interface::snapshot already
   }
 
@@ -50,8 +62,10 @@ bool acquireModel(model_acquisition::acquire::Request &request,
 
 int main(int argc, char** argv)
 {
+  std::cout << "hey" << std::endl;
   ros::init(argc, argv, "model_acquisition");
   ros::NodeHandle nh;
+  ROS_INFO("wow");
 
   if (!nh.getParam("model_acquisition/robot", g_robot))
     g_robot = "robot_undefined";  // Undefined robot
@@ -82,6 +96,10 @@ int main(int argc, char** argv)
 
   if (!nh.getParam("model_acquisition/scan_left_w2", g_scan_pose[6]))
     g_scan_pose[6] = 0.0;
+
+  ROS_INFO("help");
+  if (!nh.getParam("model_acquisition/n_snapshots", g_n_snapshots))
+    g_n_snapshots = 1;
 
   g_increment_radians = angles::from_degrees(g_increment_degrees);
 
