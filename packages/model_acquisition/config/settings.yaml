@@ -4,4 +4,15 @@ robot: baxter
 scanner: kinect2
 
 # Acquisition settings
-increment_degrees: 10.0
+increment_degrees: 20.0
+n_snapshots: 1
+scan_topic: /kinect/depth/points
+
+# Scan pose
+scan_left_e0: -1.22143
+scan_left_e1: 1.11635
+scan_left_s0: -0.446772
+scan_left_s1: 0.735544
+scan_left_w0: -1.00284
+scan_left_w1: 2.09388
+scan_left_w2: 0.0

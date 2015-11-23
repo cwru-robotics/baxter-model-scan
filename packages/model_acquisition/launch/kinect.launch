@@ -1,0 +1,7 @@
+<launch>
+	<include file="$(find camera_calibration)/launch/kinect2_transform.launch" />
+
+	<remap from="kinect2/qhd/points" to="kinect/depth/points" />
+	
+	<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch"/>
+</launch>
