@@ -62,10 +62,8 @@ bool acquireModel(model_acquisition::acquire::Request &request,
 
 int main(int argc, char** argv)
 {
-  std::cout << "hey" << std::endl;
   ros::init(argc, argv, "model_acquisition");
   ros::NodeHandle nh;
-  ROS_INFO("wow");
 
   if (!nh.getParam("model_acquisition/robot", g_robot))
     g_robot = "robot_undefined";  // Undefined robot
