@@ -17,6 +17,11 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+## Declare a C++ library
+# add_library(model_hmi
+#   src/${PROJECT_NAME}/model_hmi.cpp
+# )
+
 ## Declare a C++ executable
 add_executable(scan_hmi src/scan_hmi.cpp)
 

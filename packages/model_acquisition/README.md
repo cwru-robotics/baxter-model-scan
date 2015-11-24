@@ -14,4 +14,3 @@ To use the ROS services manually testing:
 
 PCDs are saved in `~/<ros_ws>/devel/lib/model_acquisition`.
 I'll probably need to write another node that watches for and reorganizes them.
->>>>>>> upstream/master
