@@ -57,7 +57,7 @@ include_directories(
 add_definitions(${EIGEN_DEFINITIONS})
 add_definitions(${PCL_DEFINITIONS})
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 ## Declare a C++ executable
 
