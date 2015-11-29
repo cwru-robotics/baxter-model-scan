@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf2
   message_generation
+  cwru_pcl_utils
 )
 
 link_directories(${PCL_LIBRARY_DIRS})
@@ -40,7 +41,7 @@ catkin_package(
 #  LIBRARIES model_acquisition
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs baxter_core_msgs trajectory_msgs cwru_joint_space_planner baxter_kinematics cwru_srv actionlib_msgs 
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs baxter_core_msgs trajectory_msgs cwru_joint_space_planner baxter_kinematics cwru_srv actionlib_msgs cwru_pcl_utils
   DEPENDS eigen system_lib actionlib
 )
 
@@ -68,6 +69,15 @@ add_executable(model_acquisition src/model_acquisition.cpp
 add_dependencies(model_acquisition baxter_core_msgs baxter_traj_streamer)
 
 target_link_libraries(model_acquisition
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+add_executable(planar_pointcloud src/planar_pointcloud.cpp)
+
+add_dependencies(planar_pointcloud cwru_pcl_utils)
+
+target_link_libraries(planar_pointcloud
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )
