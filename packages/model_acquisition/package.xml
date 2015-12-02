@@ -29,6 +29,7 @@
   <build_depend>actionlib</build_depend>
   <build_depend>baxter_traj_streamer</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>cwru_pcl_utils</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
@@ -43,6 +44,7 @@
   <run_depend>actionlib</run_depend>
   <run_depend>baxter_traj_streamer</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>cwru_pcl_utils</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
