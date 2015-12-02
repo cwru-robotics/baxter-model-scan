@@ -96,8 +96,23 @@ return *minMax;
 }
 
 
-//pcl::PointCloud<pcl::PointXYZRGB>::Ptr 
-int object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+Eigen::Vector3f computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud) {
+    Eigen::Vector3f centroid;
+    centroid << 0, 0, 0;
+
+    int size = pcl_cloud->width * pcl_cloud->height;
+    std::cout << "frame: " << pcl_cloud->header.frame_id << std::endl;
+    for (size_t i = 0; i != size; ++i) {
+        centroid += pcl_cloud->points[i].getVector3fMap();
+    }
+    if (size > 0) {
+        centroid /= ((float) size);
+    }
+    return centroid;
+}
+
+
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
   // Read in the cloud data
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -158,6 +173,7 @@ int object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
   ec.extract (cluster_indices);
 
   int j = 0;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr the_real_object (new pcl::PointCloud<pcl::PointXYZRGB>);
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -172,9 +188,13 @@ int object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
     ss << "cloud_cluster_" << j << ".pcd";
     writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
     j++;
-  }
 
-  return (0);
+    if (cloud_cluster->points.size() < 10000 && cloud_cluster->points.size() > 2000){
+	the_real_object = cloud_cluster;
+ 	}
+}
+  return the_real_object;
+ 
 }
 
 
