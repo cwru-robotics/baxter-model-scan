@@ -2,6 +2,6 @@
 <remap from="/camera/depth_registered/points" to="/kinect/depth/points" />
 <include file="$(find freenect_launch)/launch/freenect.launch" />
 
-<include file="$(find model_acquisition)/raised_kinect_transform.launch" /> 
+<include file="$(find model_acquisition)/launch/raised_kinect_transform.launch" /> 
 
 </launch>
