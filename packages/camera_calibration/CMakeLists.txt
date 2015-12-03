@@ -7,11 +7,15 @@ endif()
 
 find_package(catkin REQUIRED
             COMPONENTS
-            roscpp)
+            roscpp
+            model_acquisition
+            cwru_pcl_utils)
+
 find_package(cmake_modules REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)
 
+include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${CERES_INCLUDE_DIRS})
@@ -20,16 +24,20 @@ add_definitions(${EIGEN_DEFINITIONS})
 
 catkin_package(
     INCLUDE_DIRS
+        include
         ${catkin_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${CERES_INCLUDE_DIRS}
     CATKIN_DEPENDS
         roscpp
+        model_acquisition
     DEPENDS
         cmake_modules
         Eigen3
         Ceres)
 
 add_executable(calibration_solver src/calibration_solver.cpp)
+add_executable(calibrate src/calibrate.cpp)
 
 target_link_libraries(calibration_solver ${catkin_LIBRARIES} ${CERES_LIBRARIES} ${EIGEN_LIBRARIES})
+target_link_libraries(calibrate ${catkin_LIBRARIES} ${EIGEN_LIBRARIES})

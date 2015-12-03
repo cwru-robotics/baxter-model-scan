@@ -1,0 +1,3 @@
+<launch>
+<node pkg="tf" type="static_transform_publisher" name="object_platform" args="0 0 0.788797 0 0 0 right_hand object_platform 50"/>
+</launch>
