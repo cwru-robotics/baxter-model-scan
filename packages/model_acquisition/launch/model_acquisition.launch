@@ -1,0 +1,7 @@
+<launch>
+<include file="$(find model_acquisition)/launch/raised_kinect.launch" />
+<include file="$(find model_acquisition)/launch/acquire.launch" />
+
+<node pkg="model_acquisition" type="planar_pointcloud" name="planar_pointcloud" output="screen"/>
+<node pkg="rviz" type="rviz" name="rviz" />
+</launch>
