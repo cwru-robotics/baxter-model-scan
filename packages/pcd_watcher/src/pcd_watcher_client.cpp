@@ -8,7 +8,7 @@ PcdWatcherClient::PcdWatcherClient() :
         actionClient("new_pcd", true)
 {
     ROS_INFO("In constructor of PcdWatcherClient...");
-    if (!nh.getParam("pcd_watcher/directory", directory))
+    if (!nh.getParam("pcd_watcher_client/directory", directory))
     {
         directory = "/tmp/PCD";
     }
