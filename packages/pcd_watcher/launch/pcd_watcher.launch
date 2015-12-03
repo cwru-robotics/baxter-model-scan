@@ -1,6 +1,6 @@
 <launch>
-        <node name= "pcd_watcher_server" pkg= "pcd_watcher" type= "pcd_watcher_server"/>
-        <node name= "pcd_watcher_client" pkg= "pcd_watcher" type= "pcd_watcher_client">
+        <node name= "pcd_watcher_server" pkg= "pcd_watcher" type= "pcd_watcher_server" output="screen"/>
+        <node name= "pcd_watcher_client" pkg= "pcd_watcher" type= "pcd_watcher_client" output="screen">
             <rosparam command="load" file="$(find pcd_watcher)/config/settings.yaml" />
         </node>
 </launch>

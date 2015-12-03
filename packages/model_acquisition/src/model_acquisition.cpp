@@ -95,7 +95,6 @@ int main(int argc, char** argv)
   if (!nh.getParam("model_acquisition/scan_left_w2", g_scan_pose[6]))
     g_scan_pose[6] = 0.0;
 
-  ROS_INFO("help");
   if (!nh.getParam("model_acquisition/n_snapshots", g_n_snapshots))
     g_n_snapshots = 1;
 

@@ -14,7 +14,7 @@ std::vector<Eigen::Vector3d> camera_observations;
 std::vector<Eigen::Vector3d> robot_observations;
 int numCameraObservations = 0;
 int numRobotObservations = 0;
-const int numObservations = 40;
+const int numObservations = 5;
 double rotation[3];
 double translation[3];
 double rotationArray[3];
@@ -23,7 +23,7 @@ double margin = .00001;
 int numPassed = 0;
 int reps = 10000;
 std::ofstream myfile;
-std::string filename = "pointOutput.txt";
+std::string filename = "/home/mattswartwout/ros_ws/pointOutput.txt";
 
 /**
  * @brief Calculates a transformed point
@@ -280,10 +280,10 @@ double distanceBetweenPoints(Eigen::Vector3d point1, Eigen::Vector3d point2)
 
 void printTransforms()
 {
-        myfile.open(filename.c_str(), std::ios::app);
-        myfile << "Original rotation was [" << rotation[0] << "," << rotation[1] << "," << rotation[2] <<"]" << "\n";
+        myfile.open("/home/mattswartwout/ros_ws/transformOutput.txt");
+//        myfile << "Original rotation was [" << rotation[0] << "," << rotation[1] << "," << rotation[2] <<"]" << "\n";
         myfile << "Ceres-generated rotation is [" << rotationArray[0] << "," << rotationArray[1] << "," << rotationArray[2] << "]" << "\n";
-        myfile << "Original translation was [" << translation[0] << "," << translation[1] << "," << translation[2] << "," << "\n";
+//        myfile << "Original translation was [" << translation[0] << "," << translation[1] << "," << translation[2] << "," << "\n";
         myfile << "Ceres-generated translation is [" << translationArray[0] << "," << translationArray[1] << "," << translationArray[2] << "]" << std::endl;
         myfile.close();
 }
@@ -325,21 +325,25 @@ void equivalentTransforms()// double rotation1[3], double translation1[3], doubl
 
 void solve()
 {
-    ceres::Problem problem;
-    for (int j = 0 ; j < numObservations; j++)
+    if (camera_observations.size() != robot_observations.size())
     {
-        ceres::CostFunction* cost_function = CostFunctor::Create(   camera_observations[j],
-                                                                // camera_observations[3* j + 1],
-                                                                // camera_observations[3*j + 2],
-                                                                // robot_observations[3*j + 0],
-                                                                // robot_observations[3*j + 1],
-                                                                 robot_observations[j]);
-        problem.AddResidualBlock(cost_function, NULL, rotationArray, translationArray) ;
+        ROS_ERROR("Camera and robot observations do not match, cannot solve");
     }
-    
-    ceres::Solver::Options options;
-    ceres::Solver::Summary summary;
-    Solve(options, &problem, &summary);
+    else
+    {
+        ceres::Problem problem;
+
+        for (int i = 0 ; i < camera_observations.size(); i++)
+        {
+            ceres::CostFunction* cost_function = CostFunctor::Create(   camera_observations[i],
+                                                                        robot_observations[i]);
+            problem.AddResidualBlock(cost_function, NULL, rotationArray, translationArray) ;
+        }
+            
+        ceres::Solver::Options options;
+        ceres::Solver::Summary summary;
+        Solve(options, &problem, &summary);
+    }
 }
 
 
@@ -378,11 +382,39 @@ void runRandomTests()
 void getKinectPoints()
 {
     // Add logic here to save the coordinates of the kinect platform center in the frame of the kinect camera as an Eigen::Vector3d
+    std::ifstream cameraObservations;
+    cameraObservations.open("/home/mattswartwout/ros_ws/cameraObservations.txt");
+    double x;
+    double y;
+    double z;
+
+    while (cameraObservations >> x >> y >> z)
+    {
+        Eigen::Vector3d currentPoint;
+            currentPoint << x, y, z;
+        camera_observations.push_back(currentPoint);
+        ROS_INFO_STREAM("Found camera point with coordinates " << x << "," << y << "," << z);
+    }
+    cameraObservations.close();
 }
 
 void getRobotPoints()
 {
     // Add logic here to save the coordinates of the kinect platform center in the robot torso frame as an Eigen::Vector3d
+    std::ifstream robotObservations;
+    robotObservations.open("/home/mattswartwout/ros_ws/robotObservations.txt");
+    double x;
+    double y;
+    double z;
+
+    while (robotObservations >> x >> y >> z) 
+    {
+        Eigen::Vector3d currentPoint;
+            currentPoint << x, y, z; 
+        robot_observations.push_back(currentPoint);
+        ROS_INFO_STREAM("Found robot point with coordinates " << x << "," << y << "," << z);
+    }
+    robotObservations.close();
 }
 
 /**
@@ -394,8 +426,8 @@ void calculateTransform()
     getRobotPoints();
     solve();
 
-    ROS_INFO_STREAM("Calculated rotation component of the transform is " << rotationArray);  
-    ROS_INFO_STREAM("Calculated translation component of the transform is " << translationArray); 
+    ROS_INFO_STREAM("Calculated rotation component of the transform is " << rotationArray[0] << "," << rotationArray[1] << "," << rotationArray[2]);  
+    ROS_INFO_STREAM("Calculated translation component of the transform is " << translationArray[0] << "," << translationArray[1] << "," << translationArray[2]); 
     
     printTransforms();
 }
@@ -406,7 +438,7 @@ int main(int argc, char** argv)
     srand(time(0));  // Set seed for random number generation
     
     myfile.open(filename.c_str()); // Overwrite file if it already exists
-    runRandomTests(); 
-
+    //runRandomTests(); 
+    calculateTransform();
     return 0;
 }

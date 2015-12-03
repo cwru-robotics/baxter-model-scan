@@ -16,10 +16,10 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/common/impl/common.hpp>
+#include <model_processing/model_processing.h>
 
 
-
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_reader (std::string filepath)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::pcd_reader(std::string filepath)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   // Fill in the cloud data
@@ -30,27 +30,33 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_reader (std::string filepath)
 return cloud;
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr remove_outlier (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::remove_outlier (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-  std::cerr << "Cloud before filtering: " << std::endl;
-  std::cerr << cloud << std::endl;
+  std::cout << "Cloud before filtering: " << std::endl;
+  std::cout << *cloud << std::endl;
+
+  std::vector<int> index;
+  pcl::removeNaNFromPointCloud(*cloud, *cloud, index);
+  std::cout << "Cloud after NaN removal: " << std::endl;
+  std::cout << *cloud << std::endl;
 
   // Create the filtering object
+  
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
   sor.setInputCloud (cloud);
   sor.setMeanK (50);
   sor.setStddevMulThresh (1.0);
   sor.filter (*cloud_filtered);
 
-  std::cerr << "Cloud after filtering: " << std::endl;
-  std::cerr << *cloud_filtered << std::endl;
+  std::cout << "Cloud after filtering: " << std::endl;
+  std::cout << *cloud_filtered << std::endl;
 
 return cloud_filtered;
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr downsampler (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::downsampler (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -60,7 +66,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr downsampler (pcl::PointCloud<pcl::PointXY
   // Create the filtering object
   pcl::VoxelGrid<pcl::PointXYZRGB> sor;
   sor.setInputCloud (cloud);
-  sor.setLeafSize (0.01f, 0.01f, 0.01f);
+  sor.setLeafSize (0.001f, 0.001f, 0.001f);
   sor.filter (*cloud_filtered);
 
   std::cerr << "PointCloud after filtering: " << cloud_filtered->width * cloud_filtered->height 
@@ -69,14 +75,12 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr downsampler (pcl::PointCloud<pcl::PointXY
   return cloud_filtered;
 }
 
-float bounding_box (const pcl::PointCloud<pcl::PointXYZRGB> cloud){
+void ModelProcessing::bounding_box (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, float (&minMax)[6]){
 
 pcl::PointXYZRGB min;// = (new pcl::PointXYZRGB());
 pcl::PointXYZRGB max;// = (new pcl::PointXYZRGB());
 
- pcl::getMinMax3D (cloud, min, max);
-
-float minMax[6];
+ pcl::getMinMax3D (*cloud, min, max);
 
 float x_min = min.x;
 float y_min = min.y;
@@ -91,12 +95,10 @@ minMax[2]=z_min;
 minMax[3]=x_max;
 minMax[4]=y_max;
 minMax[5]=z_max;
-
-return *minMax;
 }
 
 
-Eigen::Vector3f computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud) {
+Eigen::Vector3f ModelProcessing::computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud) {
     Eigen::Vector3f centroid;
     centroid << 0, 0, 0;
 
@@ -112,12 +114,12 @@ Eigen::Vector3f computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud
 }
 
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, int minPointRange, int maxPointRange)
 {
   // Read in the cloud data
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-  std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
+  std::cout << "PointCloud before separation has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the segmentation object for the planar model and set all the parameters
   pcl::SACSegmentation<pcl::PointXYZRGB> seg;
@@ -129,10 +131,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pc
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.02);
+  seg.setDistanceThreshold (0.03);
 
   int i=0, nr_points = (int) cloud->points.size ();
-  while (cloud->points.size () > 0.3 * nr_points)
+  while (cloud->points.size () > 0.8 * nr_points)
   {
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (cloud);
@@ -166,8 +168,8 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pc
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
   ec.setClusterTolerance (0.02); // 2cm
-  ec.setMinClusterSize (100);
-  ec.setMaxClusterSize (25000);
+  ec.setMinClusterSize (1000);
+  ec.setMaxClusterSize (100000);
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud);
   ec.extract (cluster_indices);
@@ -177,8 +179,11 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pc
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
-    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
-      cloud_cluster->points.push_back (cloud->points[*pit]); //*
+    for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
+    {
+        cloud_cluster->points.push_back (cloud->points[*pit]); //*
+    }
+
     cloud_cluster->width = cloud_cluster->points.size ();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
@@ -189,12 +194,39 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pc
     writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
     j++;
 
-    if (cloud_cluster->points.size() < 10000 && cloud_cluster->points.size() > 2000){
-	the_real_object = cloud_cluster;
+    if (cloud_cluster->points.size() < maxPointRange && cloud_cluster->points.size() > minPointRange)
+    {
+	    the_real_object = cloud_cluster;
+        break;
  	}
-}
+    }
   return the_real_object;
  
+}
+
+std::string ModelProcessing::pcd_writer(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string filepath) {
+       
+//index strings
+
+std::string Name = "";
+for (int i = filepath.length() - 1; i >= 0; i--) {
+	
+  if (filepath[i] == '/') {
+       break;
+     }   
+
+  if (i < filepath.length() - 4) {
+   	Name = filepath[i] + Name;
+     }
+}
+
+std::string fileName = Name + "_processed.pcd";
+
+pcl::PCDWriter writer;
+writer.write<pcl::PointXYZRGB> (fileName, *cloud, false);
+
+return fileName;
+
 }
 
 
