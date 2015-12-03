@@ -12,9 +12,21 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package (PCL 1.7 REQUIRED)
+
+catkin_package(
+	INCLUDE_DIRS
+	include
+	${catkin_INCLUDE_DIRS}
+	${PCL_INCLUDE_DIRS}
+	LIBRARIES
+	model_processing
+	)
+
+include_directories(include)
+include_directories(${catkin_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-catkin_package()
+
 add_library(model_processing src/model_processing.cpp)
-target_link_libraries(model_processing ${PLC_LIBRARIES})
+target_link_libraries(model_processing ${catkin_LIBRARIES} ${PCL_LIBRARIES})

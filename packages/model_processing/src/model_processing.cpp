@@ -16,10 +16,10 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/common/impl/common.hpp>
+#include <model_processing/model_processing.h>
 
 
-
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_reader (std::string filepath)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::pcd_reader(std::string filepath)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   // Fill in the cloud data
@@ -30,7 +30,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_reader (std::string filepath)
 return cloud;
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr remove_outlier (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::remove_outlier (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -50,7 +50,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr remove_outlier (pcl::PointCloud<pcl::Poin
 return cloud_filtered;
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr downsampler (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::downsampler (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -69,12 +69,12 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr downsampler (pcl::PointCloud<pcl::PointXY
   return cloud_filtered;
 }
 
-float bounding_box (const pcl::PointCloud<pcl::PointXYZRGB> cloud){
+float* ModelProcessing::bounding_box (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud){
 
 pcl::PointXYZRGB min;// = (new pcl::PointXYZRGB());
 pcl::PointXYZRGB max;// = (new pcl::PointXYZRGB());
 
- pcl::getMinMax3D (cloud, min, max);
+ pcl::getMinMax3D (*cloud, min, max);
 
 float minMax[6];
 
@@ -92,11 +92,11 @@ minMax[3]=x_max;
 minMax[4]=y_max;
 minMax[5]=z_max;
 
-return *minMax;
+return minMax;
 }
 
 
-Eigen::Vector3f computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud) {
+Eigen::Vector3f ModelProcessing::computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud) {
     Eigen::Vector3f centroid;
     centroid << 0, 0, 0;
 
@@ -112,7 +112,7 @@ Eigen::Vector3f computeCentroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud
 }
 
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
   // Read in the cloud data
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -195,6 +195,31 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr object_identification (pcl::PointCloud<pc
 }
   return the_real_object;
  
+}
+
+std::string ModelProcessing::pcd_writer(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string filepath) {
+       
+//index strings
+
+std::string Name = "";
+for (int i = filepath.length() - 1; i >= 0; i--) {
+	
+  if (filepath[i] == '/') {
+       break;
+     }   
+
+  if (i < filepath.length() - 4) {
+   	Name = filepath[i] + Name;
+     }
+}
+
+std::string fileName = Name + "_processed.pcd";
+
+pcl::PCDWriter writer;
+writer.write<pcl::PointXYZRGB> (fileName, *cloud, false);
+
+return fileName;
+
 }
 
 
