@@ -35,7 +35,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::remove_outlier (pcl::Poi
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
 
   std::cerr << "Cloud before filtering: " << std::endl;
-  std::cerr << cloud << std::endl;
+  std::cerr << *cloud << std::endl;
 
   // Create the filtering object
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
@@ -60,7 +60,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::downsampler (pcl::PointC
   // Create the filtering object
   pcl::VoxelGrid<pcl::PointXYZRGB> sor;
   sor.setInputCloud (cloud);
-  sor.setLeafSize (0.01f, 0.01f, 0.01f);
+  sor.setLeafSize (0.001f, 0.001f, 0.001f);
   sor.filter (*cloud_filtered);
 
   std::cerr << "PointCloud after filtering: " << cloud_filtered->width * cloud_filtered->height 
@@ -69,14 +69,12 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::downsampler (pcl::PointC
   return cloud_filtered;
 }
 
-float* ModelProcessing::bounding_box (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud){
+void ModelProcessing::bounding_box (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, float (&minMax)[6]){
 
 pcl::PointXYZRGB min;// = (new pcl::PointXYZRGB());
 pcl::PointXYZRGB max;// = (new pcl::PointXYZRGB());
 
  pcl::getMinMax3D (*cloud, min, max);
-
-float minMax[6];
 
 float x_min = min.x;
 float y_min = min.y;
@@ -91,8 +89,6 @@ minMax[2]=z_min;
 minMax[3]=x_max;
 minMax[4]=y_max;
 minMax[5]=z_max;
-
-return minMax;
 }
 
 

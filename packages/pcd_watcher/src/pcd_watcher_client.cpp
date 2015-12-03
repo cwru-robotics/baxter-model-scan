@@ -59,6 +59,7 @@ void PcdWatcherClient::getEvents()
                 filepath = directory + "/" + filename;
                 ROS_INFO("Event detected, new file %s created", filepath.c_str());
                 goal.newFilepath = filepath;
+		ros::Duration(4.0).sleep();
                 actionClient.sendGoal(goal);
             }
         }
