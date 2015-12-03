@@ -108,7 +108,7 @@ Eigen::Vector3f ModelProcessing::computeCentroid(pcl::PointCloud<pcl::PointXYZRG
 }
 
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, int minPointRange, int maxPointRange)
 {
   // Read in the cloud data
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -185,7 +185,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
     writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
     j++;
 
-    if (cloud_cluster->points.size() < 10000 && cloud_cluster->points.size() > 2000){
+    if (cloud_cluster->points.size() < maxPointRange && cloud_cluster->points.size() > minPointRange){
 	the_real_object = cloud_cluster;
  	}
 }
