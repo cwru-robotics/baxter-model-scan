@@ -198,8 +198,8 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
     {
 	    the_real_object = cloud_cluster;
         break;
- 	}
-    }
+	}
+  }
   return the_real_object;
  
 }
@@ -228,6 +228,4 @@ writer.write<pcl::PointXYZRGB> (fileName, *cloud, false);
 return fileName;
 
 }
-
-
 #endif
