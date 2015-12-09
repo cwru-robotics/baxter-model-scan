@@ -5,6 +5,7 @@
 #include <Eigen/Core>
 #include <iostream>
 #include <fstream>
+#include <camera_calibration/calibration_pcl_utils.h>
 
 int main(int argc, char** argv)
 {
@@ -12,18 +13,18 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     Calibrate calibrate(nh, 5);
     calibrate.doCalibration();
-    ros::spin();
 }
 
 Calibrate::Calibrate(ros::NodeHandle nh, int numPoses) :
     nh(nh),
     nh_ptr(&nh),
     baxter(nh),
-    cwru_pcl_utils(nh_ptr),
+    pcl_utils(nh_ptr),
     pose(7),
     numPoses(numPoses)
 {
     ROS_INFO("Constructing Calibrate");
+    numPics = 0;
 }
 
 void Calibrate::doCalibration()
@@ -35,7 +36,6 @@ void Calibrate::doCalibration()
         getCameraObservation();
         getRobotObservation();
     }
-    //solveCalibration(); 
 }
 
 void Calibrate::goToPose(int i)
@@ -97,64 +97,7 @@ void Calibrate::goToPose(int i)
             pose[6] = .0398835;
             ROS_INFO("Calling for pose 4");
             baxter.goToPose(convertPoseToVec(), 1);
-            break;/* 
-        case 5:
-            pose[0] = ;
-            pose[1] = ; 
-            pose[2] = ;
-            pose[3] = ;
-            pose[4] = ;
-            pose[5] = ;
-            pose[6] = ;
-            ROS_INFO("Calling for pose 5");
-            baxter.goToPose(convertPoseToVec(), 1);
-            break;
-        case 6:
-            pose[0] = ;
-            pose[1] = ; 
-            pose[2] = ;
-            pose[3] = ;
-            pose[4] = ;
-            pose[5] = ;
-            pose[6] = ;
-            ROS_INFO("Calling for pose 2");
-            baxter.goToPose(convertPoseToVec(), 1);
-        case 7:
-            pose[0] = ;
-            pose[1] = ; 
-            pose[2] = ;
-            pose[3] = ;
-            pose[4] = ;
-            pose[5] = ;
-            pose[6] = ;
-            ROS_INFO("Calling for pose 2");
-            baxter.goToPose(convertPoseToVec(), 1); 
-        case 8:
-            pose[0] = ;
-            pose[1] = ; 
-            pose[2] = ;
-            pose[3] = ;
-            pose[4] = ;
-            pose[5] = ;
-            pose[6] = ;
-            ROS_INFO("Calling for pose 2");
-            baxter.goToPose(convertPoseToVec(), 1); 
-        case 9:
-            pose[0] = ;
-            pose[1] = ; 
-            pose[2] = ;
-            pose[3] = ;
-            pose[4] = ;
-            pose[5] = ;
-            pose[6] = ;
-            ROS_INFO("Calling for pose 2");
-            baxter.goToPose(convertPoseToVec(), 1); 
-
-
-
-
-   
-        */ 
+            break; 
     }
 }
 
@@ -176,7 +119,50 @@ Vectorq7x1 Calibrate::convertPoseToVec()
 
 void Calibrate::getCameraObservation()
 {
+    ROS_INFO("Getting camera observation...");
+    pcl_utils.reset_got_kinect_cloud();
 
+    int count = 0;
+    while (!pcl_utils.got_kinect_cloud())
+    {
+        count++;
+        ROS_WARN("No kinect cloud available, retrying...");
+        ros::Duration(.5).sleep();
+        ros::spinOnce();
+        if (count == 20)
+        {
+            ROS_WARN("Giving up on kinect cloud, could not get camera observation");
+            break;
+        }
+    }
+    if (pcl_utils.got_kinect_cloud())
+    {
+        ROS_INFO_STREAM("Getting camera observation " << numPics);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new PointCloud<pcl::PointXYZRGB>);
+        cloud = pcl_utils.getKinectColorCloud();
+
+        std::stringstream initialSnapshot;
+        initialSnapshot << "initial_snapshot_" << numPics << ".pcd";
+        pcl::io::savePCDFileASCII (initialSnapshot.str(), *cloud); 
+
+        cloud = model_processing.remove_outlier(cloud);
+
+        std::stringstream removedOutliersSnapshot;
+        removedOutliersSnapshot << "removed_outliers_snapshot_" << numPics << ".pcd";
+        pcl::io::savePCDFileASCII (removedOutliersSnapshot.str(), *cloud); 
+
+        cloud = model_processing.object_identification(pcl_utils.getKinectColorCloud(),12000,100000);
+
+        std::stringstream identifiedObjectSnapshot;
+        identifiedObjectSnapshot << "identified_object_snapshot_" << numPics << ".pcd";
+        pcl::io::savePCDFileASCII (identifiedObjectSnapshot.str(), *cloud); 
+
+        observationFile.open("cameraObservations.txt", ios::app);
+        observationFile << pcl_utils.compute_centroid(cloud) << "\n";
+        observationFile.close();
+       
+        numPics++; 
+    }
 }
 
 void Calibrate::getRobotObservation()
@@ -190,7 +176,7 @@ void Calibrate::getRobotObservation()
         tferr = false;
         try 
         {
-            tf_listener.lookupTransform("torso", "object_platform", ros::Time(0), tf_platform_to_torso);
+            tf_listener.lookupTransform("camera_link", "object_platform", ros::Time(0), tf_platform_to_torso);
         }
         catch (tf::TransformException &exception)
         {
@@ -201,14 +187,14 @@ void Calibrate::getRobotObservation()
         }
     }
 
-    Eigen::Affine3f A_platform_wrt_torso = cwru_pcl_utils.transformTFToEigen(tf_platform_to_torso);
+    Eigen::Affine3f A_platform_wrt_torso = pcl_utils.transformTFToEigen(tf_platform_to_torso);
     ROS_INFO_STREAM("Calculated transform from platform to torso as\n" << A_platform_wrt_torso.linear() << "\n" << A_platform_wrt_torso.translation());
     Eigen::Vector3f point;
         point << 0, 0, 0;
     point = A_platform_wrt_torso * point;
     ROS_INFO_STREAM("Calculated centroid of platform as\n" << point);
     
-    observationFile.open("robotObservations.txt");
+    observationFile.open("robotObservations.txt", ios::app);
     observationFile << point << "\n";
     observationFile.close();
 }

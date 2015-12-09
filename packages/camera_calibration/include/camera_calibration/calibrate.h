@@ -6,7 +6,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <cwru_pcl_utils/cwru_pcl_utils.h>
+#include <camera_calibration/calibration_pcl_utils.h>
+#include <model_processing/model_processing.h>
 
 class Calibrate
 {
@@ -23,9 +24,11 @@ private:
     ros::NodeHandle nh;
     ros::NodeHandle* nh_ptr;
     BaxterInterface baxter;
-    CwruPclUtils cwru_pcl_utils;
+    CalibrationPclUtils pcl_utils;
+    ModelProcessing model_processing;
     std::vector<double> pose;
     int numPoses;
     ofstream observationFile;
+    int numPics;
 };
 #endif
