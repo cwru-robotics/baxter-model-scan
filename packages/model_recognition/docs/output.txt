@@ -1,0 +1,23 @@
+╭─luc@machina  ~/indigo  
+╰─$ rosrun model_recognition cluster_models
+[ INFO] [1449710481.917013923]: Got raw data.
+[ INFO] [1449710481.917064700]: Time to pre-process data.  Scaling features.
+[ INFO] [1449710481.917106781]: Features have been scaled.
+[ INFO] [1449710481.917129608]: Assigning clusters to contain first pattern of each model
+[ INFO] [1449710481.917162910]: Clusters initialized!  Ready for pattern processing.
+[ INFO] [1449710481.917201521]: Doing clustering.
+
+[ INFO] [1449710481.917652352]: Done clustering! 17 reassignments made in 0.000435 seconds.
+[ INFO] [1449710481.917675802]: report: 
+natty | cR: 0.975142, cG: 0.980541, cB: 0.970707, cL: 0.07246, cW: 0.732228, cH: 0.400562
+[ INFO] [1449710481.917722690]: 0 patterns have been miscategorized.
+
+apple | cR: 0.680934, cG: -0.0569533, cB: -0.0673407, cL: 0.32532, cW: 1.02169, cH: -0.0177654
+[ INFO] [1449710481.917757170]: 0 patterns have been miscategorized.
+
+kraft | cR: 0.0271469, cG: 0.198, cB: 0.391591, cL: 0.895535, cW: 0.0110546, cH: 0.987865
+[ INFO] [1449710481.917790494]: 0 patterns have been miscategorized.
+
+mystery1 is: natty
+mystery2 is: apple
+mystery3 is: kraft
