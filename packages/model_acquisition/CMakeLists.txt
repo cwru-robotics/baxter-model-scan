@@ -37,8 +37,8 @@ generate_messages(
 find_package(Boost REQUIRED COMPONENTS system)
 
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES model_acquisition
+        INCLUDE_DIRS include ${catkin_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS}
+  LIBRARIES baxter_interface kinect2_interface 
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
   CATKIN_DEPENDS roscpp std_msgs sensor_msgs baxter_core_msgs trajectory_msgs cwru_joint_space_planner baxter_kinematics cwru_srv actionlib_msgs cwru_pcl_utils
@@ -61,14 +61,21 @@ add_definitions(${PCL_DEFINITIONS})
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 ## Declare a C++ executable
+add_library(baxter_interface src/baxter_interface.cpp)
 
-add_executable(model_acquisition src/model_acquisition.cpp
-  src/baxter_interface.cpp
-  src/kinect2_interface.cpp)
+target_link_libraries(baxter_interface ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_library(kinect2_interface src/kinect2_interface.cpp)
+
+target_link_libraries(kinect2_interface ${PCL_LIBRARIES})
+
+add_executable(model_acquisition src/model_acquisition.cpp)
 
 add_dependencies(model_acquisition baxter_core_msgs baxter_traj_streamer)
 
 target_link_libraries(model_acquisition
+  baxter_interface
+  kinect2_interface
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )

@@ -34,18 +34,24 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::remove_outlier (pcl::Poi
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-  std::cerr << "Cloud before filtering: " << std::endl;
-  std::cerr << *cloud << std::endl;
+  std::cout << "Cloud before filtering: " << std::endl;
+  std::cout << *cloud << std::endl;
+
+  std::vector<int> index;
+  pcl::removeNaNFromPointCloud(*cloud, *cloud, index);
+  std::cout << "Cloud after NaN removal: " << std::endl;
+  std::cout << *cloud << std::endl;
 
   // Create the filtering object
+  
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
   sor.setInputCloud (cloud);
   sor.setMeanK (50);
   sor.setStddevMulThresh (1.0);
   sor.filter (*cloud_filtered);
 
-  std::cerr << "Cloud after filtering: " << std::endl;
-  std::cerr << *cloud_filtered << std::endl;
+  std::cout << "Cloud after filtering: " << std::endl;
+  std::cout << *cloud_filtered << std::endl;
 
 return cloud_filtered;
 }
@@ -113,7 +119,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
   // Read in the cloud data
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-  std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
+  std::cout << "PointCloud before separation has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the segmentation object for the planar model and set all the parameters
   pcl::SACSegmentation<pcl::PointXYZRGB> seg;
@@ -125,10 +131,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.02);
+  seg.setDistanceThreshold (0.03);
 
   int i=0, nr_points = (int) cloud->points.size ();
-  while (cloud->points.size () > 0.3 * nr_points)
+  while (cloud->points.size () > 0.8 * nr_points)
   {
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (cloud);
@@ -162,8 +168,8 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
   ec.setClusterTolerance (0.02); // 2cm
-  ec.setMinClusterSize (100);
-  ec.setMaxClusterSize (25000);
+  ec.setMinClusterSize (1000);
+  ec.setMaxClusterSize (100000);
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud);
   ec.extract (cluster_indices);
@@ -173,8 +179,11 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
-    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
-      cloud_cluster->points.push_back (cloud->points[*pit]); //*
+    for (std::vector<int>::const_iterator pit = it->indices.begin(); pit != it->indices.end(); ++pit)
+    {
+        cloud_cluster->points.push_back (cloud->points[*pit]); //*
+    }
+
     cloud_cluster->width = cloud_cluster->points.size ();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
@@ -185,10 +194,12 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr ModelProcessing::object_identification (p
     writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false); //*
     j++;
 
-    if (cloud_cluster->points.size() < maxPointRange && cloud_cluster->points.size() > minPointRange){
-	the_real_object = cloud_cluster;
- 	}
-}
+    if (cloud_cluster->points.size() < maxPointRange && cloud_cluster->points.size() > minPointRange)
+    {
+	    the_real_object = cloud_cluster;
+        break;
+	}
+  }
   return the_real_object;
  
 }
@@ -217,6 +228,4 @@ writer.write<pcl::PointXYZRGB> (fileName, *cloud, false);
 return fileName;
 
 }
-
-
 #endif

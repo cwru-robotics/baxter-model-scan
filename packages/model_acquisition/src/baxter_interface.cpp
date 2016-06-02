@@ -87,6 +87,7 @@ bool BaxterInterface::setJointToAngle(int joint, double angle)
 
 bool BaxterInterface::goToPose(Vectorq7x1 pose, int lr)
 {
+    ROS_INFO("Entered BaxterInterface::goToPose");
   uint g_count = 0;
   uint ans;
   Eigen::VectorXd q_in_vecxd;
